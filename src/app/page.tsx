@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { QuoteIcon } from 'lucide-react'
 
 function isPrime(num: number): boolean {
   if (num <= 1) return false
@@ -31,6 +32,13 @@ function generateChartData(num: number): { x: number; y: number }[] {
   }
   return data
 }
+
+const primeQuotes = [
+  'Prime numbers are the most basic objects in mathematics.',
+  'Prime numbers are like the atoms of arithmetic.',
+  'The distribution of primes is a profound mystery.',
+  'Every even number greater than 2 is the sum of two primes.',
+]
 
 export default function PrimeChecker() {
   const [number, setNumber] = useState<number | ''>('')
@@ -115,6 +123,19 @@ export default function PrimeChecker() {
                   >
                     {number} is {result.isPrime ? '' : 'not '}a prime number.
                   </motion.p>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className='flex items-center justify-center text-white'
+                  >
+                    <QuoteIcon className='w-6 h-6 mr-2' />
+                    <p className='italic text-sm'>
+                      {result.isPrime
+                        ? primeQuotes[Math.floor(Math.random() * primeQuotes.length)]
+                        : 'You shall not pass!'}
+                    </p>
+                  </motion.div>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
