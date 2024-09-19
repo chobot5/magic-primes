@@ -25,8 +25,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en' className={'h-full'}>
-      <body className={'h-full bg-fixed bg-gradient-to-t from-violet-400 via-violet-600 to-indigo-600'}>
-        <main className={'container mx-auto py-24'}>{children}</main>
+      <body className={''}>
+        <main className={''}>{children}</main>
       </body>
     </html>
   )

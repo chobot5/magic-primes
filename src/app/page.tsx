@@ -1,61 +1,122 @@
 'use client'
+
 import { useState } from 'react'
-import { PrimeNumber } from '@/utils/PrimeNumber'
+import { motion, AnimatePresence } from 'framer-motion'
 
-const isNumber = (num: number) => !isNaN(num)
+function isPrime(num: number): boolean {
+  if (num <= 1) return false
+  for (let i = 2; i <= Math.sqrt(num); i++) {
+    if (num % i === 0) return false
+  }
+  return true
+}
 
-export default function Home() {
-  const [prime, setPrime] = useState<string | null>(null)
-  const [primes, setPrimes] = useState<number[]>([])
+function getPrimesUpTo(num: number): number[] {
+  const primes: number[] = []
+  for (let i = 2; i < num; i++) {
+    if (isPrime(i)) primes.push(i)
+  }
+  return primes
+}
 
-  const handePrimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value.length === 0 || e.target.value.match(/^\d+$/)) {
-      setPrime(e.target.value)
+export default function PrimeChecker() {
+  const [number, setNumber] = useState<number | ''>('')
+  const [result, setResult] = useState<{ isPrime: boolean; lowerPrimes: number[] } | null>(null)
+
+  const handleConfirm = () => {
+    if (typeof number === 'number' && number <= 100000) {
+      const isPrimeResult = isPrime(number)
+      const lowerPrimes = getPrimesUpTo(number)
+      setResult({ isPrime: isPrimeResult, lowerPrimes })
     }
   }
 
   return (
-    <div>
-      <div className={'flex flex-col items-center justify-center gap-8'}>
-        <form
-          onSubmit={(formEvent) => {
-            formEvent.preventDefault()
-            const data = new FormData(formEvent.currentTarget)
-            const num = parseInt(data.get('prime') as string)
-
-            if (isNumber(num)) {
-              const primeNumber = new PrimeNumber(num)
-              const numbers: number[] = []
-              for (const i of primeNumber) {
-                numbers.push(i)
-              }
-              setPrimes(numbers)
-            }
-          }}
-        >
-          <input
-            name={'prime'}
-            className={
-              'shadow-inner shadow-slate-400 text-black h-14 text-2xl px-3 bg-amber-100 border-none rounded-md outline outline-2 outline-purple-400 focus:outline-purple-600'
-            }
-            type={'text'}
-            value={prime ?? ''}
-            maxLength={5}
-            onChange={handePrimeChange}
-          />
-          <button type={'submit'}>Get my primes</button>
-        </form>
-        <div className={'w-full grid grid-cols primes gap-2 px-4 content-center'}>
-          {primes.map((primeNum) => (
-            <div
-              key={primeNum}
-              className={
-                'object-cover flex justify-center items-center px-4 h-12 bg-amber-200 rounded-md transition transition-300 hover:bg-amber-300'
-              }
-            >
-              <strong className={''}>{primeNum.toLocaleString('cs')}</strong>
+    <div className='min-h-screen bg-gradient-to-br from-purple-700 via-pink-500 to-red-500'>
+      <div className='max-w-4xl mx-auto p-8'>
+        <div className='p-8 bg-white bg-opacity-20 backdrop-blur-lg rounded-xl shadow-lg'>
+          <h1 className='text-3xl font-bold mb-6 text-white text-center'>Prime Number Checker</h1>
+          <div className='space-y-6'>
+            <div className='space-y-2'>
+              <label htmlFor='number-input' className='text-white'>
+                Enter a number:
+              </label>
+              <input
+                id='number-input'
+                type='text'
+                value={number}
+                maxLength={5}
+                onChange={(e) => {
+                  if (e.target.value.match(/^\d+$/) || e.target.value === '') setNumber(Number(e.target.value))
+                }}
+                placeholder='Enter a number'
+                className='flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-white bg-opacity-20 text-white placeholder-gray-300 border-white border-opacity-30'
+              />
             </div>
-          ))}
+            <button
+              onClick={handleConfirm}
+              className='inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-primary/90 h-10 px-4 py-2 w-full bg-white text-purple-700 hover:bg-opacity-90'
+            >
+              Confirm
+            </button>
+            <AnimatePresence>
+              {result && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    transition: {
+                      type: 'spring',
+                      stiffness: 300,
+                      damping: 20,
+                    },
+                  }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className='mt-6 space-y-4'
+                >
+                  <motion.p
+                    className='font-semibold text-white text-center text-xl'
+                    animate={
+                      result.isPrime
+                        ? {
+                            scale: [1, 1.2, 1],
+                            transition: {
+                              duration: 0.5,
+                              times: [0, 0.5, 1],
+                            },
+                          }
+                        : {}
+                    }
+                  >
+                    {number} is {result.isPrime ? '' : 'not '}a prime number.
+                  </motion.p>
+                  <div>
+                    <h2 className='font-semibold text-white text-center text-lg mb-4'>
+                      Prime numbers lower than {number}:
+                    </h2>
+                    {result.lowerPrimes.length > 0 ? (
+                      <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4'>
+                        {result.lowerPrimes.map((prime, index) => (
+                          <motion.div
+                            key={prime}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className='bg-white bg-opacity-20 p-4 rounded-lg shadow-md flex items-center justify-center'
+                          >
+                            <span className='text-white font-semibold text-lg'>{prime}</span>
+                          </motion.div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className='text-white text-center'>No prime numbers found.</p>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </div>
