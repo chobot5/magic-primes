@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 function isPrime(num: number): boolean {
   if (num <= 1) return false
@@ -19,17 +20,40 @@ function getPrimesUpTo(num: number): number[] {
   return primes
 }
 
+function generateChartData(num: number): { x: number; y: number }[] {
+  const data: { x: number; y: number }[] = []
+  let primeCount = 0
+  for (let i = 2; i <= num; i++) {
+    if (isPrime(i)) {
+      primeCount++
+    }
+    data.push({ x: i, y: primeCount })
+  }
+  return data
+}
+
 export default function PrimeChecker() {
   const [number, setNumber] = useState<number | ''>('')
-  const [result, setResult] = useState<{ isPrime: boolean; lowerPrimes: number[] } | null>(null)
+  const [result, setResult] = useState<{
+    isPrime: boolean
+    lowerPrimes: number[]
+    chartData: { x: number; y: number }[]
+  } | null>(null)
+  const [key, setKey] = useState(0)
 
   const handleConfirm = () => {
-    if (typeof number === 'number' && number <= 100000) {
+    if (typeof number === 'number') {
       const isPrimeResult = isPrime(number)
       const lowerPrimes = getPrimesUpTo(number)
-      setResult({ isPrime: isPrimeResult, lowerPrimes })
+      const chartData = generateChartData(number)
+      setResult({ isPrime: isPrimeResult, lowerPrimes, chartData })
+      setKey((prev) => prev + 1)
     }
   }
+
+  useEffect(() => {
+    setResult(null)
+  }, [number])
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-purple-700 via-pink-500 to-red-500'>
@@ -91,6 +115,36 @@ export default function PrimeChecker() {
                   >
                     {number} is {result.isPrime ? '' : 'not '}a prime number.
                   </motion.p>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <div className='p-8 bg-white bg-opacity-20 backdrop-blur-lg rounded-xl shadow-lg'>
+                      <h2 className='text-2xl font-bold mb-4 text-white text-center'>Prime Number Distribution</h2>
+                      <div className='w-full h-64'>
+                        <ResponsiveContainer width='100%' height='100%'>
+                          <LineChart data={result.chartData}>
+                            <CartesianGrid strokeDasharray='3 3' stroke='rgba(255, 255, 255, 0.2)' />
+                            <XAxis
+                              dataKey='x'
+                              stroke='white'
+                              label={{ value: 'Number', position: 'insideBottom', offset: -5, fill: 'white' }}
+                            />
+                            <YAxis
+                              stroke='white'
+                              label={{ value: 'Prime Count', angle: -90, position: 'insideLeft', fill: 'white' }}
+                            />
+                            <Tooltip
+                              contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', color: '#6b46c1' }}
+                              labelStyle={{ color: '#6b46c1' }}
+                            />
+                            <Line type='monotone' dataKey='y' stroke='#ffffff' strokeWidth={2} dot={false} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </motion.div>
                   <div>
                     <h2 className='font-semibold text-white text-center text-lg mb-4'>
                       Prime numbers lower than {number}:
