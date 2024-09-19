@@ -39,7 +39,7 @@ export default function PrimeChecker() {
     lowerPrimes: number[]
     chartData: { x: number; y: number }[]
   } | null>(null)
-  const [_, setKey] = useState(0)
+  const [, setKey] = useState(0)
 
   const handleConfirm = () => {
     if (typeof number === 'number') {
